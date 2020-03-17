@@ -7,7 +7,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Threading.Tasks;
+    using System.Linq;
 
     public class FileManagerService : IFileManagerService
     {
@@ -18,29 +18,33 @@
 
         readonly string BaseSourcePath;
 
-        public Task<bool> CheckFile(string path)
+        public Result<string> CreateFolder()
         {
-            throw new System.NotImplementedException();
+            var newFolderPath = string.Empty;
+
+            while (true)
+            {
+                newFolderPath = BaseSourcePath + Guid.NewGuid().ToString() + '\\';
+                
+                if (!Directory.Exists(newFolderPath))
+                {
+                    Directory.CreateDirectory(newFolderPath);
+                    return new Result<string> { Data = newFolderPath };
+                }
+            }
         }
 
-        public Task<bool> CheckFolder(string path)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<Result<bool>> CreateFolder(string name)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Result<BaseFileObject> SaveFile(byte[] data, string fileExtension, FileTypeEnum fileType)
+        public Result<BaseFileObject> SaveFile(byte[] data,
+            string fileExtension,
+            FileTypeEnum fileType,
+            string folderName)
         {
             BinaryWriter Writer = null;
             BaseFileObject result = null;
             List<Error> errors = new List<Error>();
 
-            string fileName = $"{Guid.NewGuid()}{fileExtension}";
-            var fullPath = $@"{BaseSourcePath}{fileName}";
+            string fileName = GenerateFileName(fileType, fileExtension, folderName);
+            var fullPath = $"{folderName + fileName}";
 
             try
             {
@@ -76,6 +80,21 @@
             }
 
             return new Result<BaseFileObject> { Data = result };
+        }
+
+        // this function as side effect of lack of Glob.h in windows
+        // be cuz of this lack, we can not grab non-sequence images -_-
+        private string GenerateFileName(FileTypeEnum type, string extension, string folderName)
+        {
+            if (type == FileTypeEnum.audio)
+            {
+                return $"{Guid.NewGuid()}{extension}";
+            }
+
+            var fileCount = (from file in Directory.EnumerateFiles(folderName, $"*{extension}", SearchOption.TopDirectoryOnly)
+                             select file).Count() + 1;
+
+            return fileCount.ToString() + extension;
         }
     }
 }

@@ -1,11 +1,10 @@
 ﻿namespace Services.Interfaces
 {
     using Core.ObjectValue;
-    using Services.Model;
-    using System.Threading.Tasks;
+    using Services.DTO;
 
     public interface IVideoService
     {
-        public Task<Result<string>> CreateVideo(VideoCreation videoCreation);
+        public Result<string> CreateVideo(VideoCreationDTO videoCreation);
     }
 }

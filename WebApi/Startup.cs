@@ -25,7 +25,10 @@ namespace WebApi
                 ActivatorUtilities.CreateInstance<FileManagerService>(x,
                     Environment.ContentRootPath + Configuration.GetSection("SourcePath").Value));
 
-            services.AddScoped<IVideoService, VideoService>();
+            services.AddScoped<IVideoService>(x =>
+                ActivatorUtilities.CreateInstance<VideoService>(x,
+                    Environment.ContentRootPath + Configuration.GetSection("OutputPath").Value,
+                    Environment.ContentRootPath + Configuration.GetSection("FfmgepPath").Value));
 
             services.AddControllers();
         }
